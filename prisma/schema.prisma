@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// When migrating to PostgreSQL:
+// enum Role { DRIVER, VYAPARI, FARMER }
+// enum PostType { VEHICLE_AVAILABLE, LOAD_AVAILABLE }
+// enum MembershipStatus { ACTIVE, EXPIRED }
+
+model User {
+  id            String       @id @default(cuid())
+  name          String
+  phone         String       @unique
+  role          String       @default("DRIVER") // DRIVER | VYAPARI | FARMER
+  vehicleNumber String?
+  vehicleType   String?
+  city          String
+  isVerified    Boolean      @default(false)
+  rating        Float        @default(4.8)
+  hasActivePass Boolean      @default(false)
+  avatar        String?
+  posts         Post[]
+  memberships   Membership[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Post {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          String    @default("LOAD_AVAILABLE") // VEHICLE_AVAILABLE | LOAD_AVAILABLE
+  title         String
+  origin        String
+  destination   String
+  vehicleType   String
+  capacity      String?
+  targetPrice   Int?
+  departureTime String
+  notes         String?
+  status        String    @default("ACTIVE") // ACTIVE | COMPLETED | CANCELLED
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Membership {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planName   String   @default("Return Load Unlimited Pass")
+  amount     Int      @default(299)
+  status     String   @default("ACTIVE") // ACTIVE | EXPIRED
+  validUntil DateTime
+  createdAt  DateTime @default(now())
+}
